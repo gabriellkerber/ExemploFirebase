@@ -20,5 +20,6 @@ export class AppComponent implements OnInit{
     }).catch(error => {
       console.log(error);
     });
+
   }
 }
