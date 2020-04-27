@@ -1,0 +1,11 @@
+{
+  "targets": {
+    "exemplofirebase-c4fad": {
+      "hosting": {
+        "ExemploFirebase": [
+          "exemplofirebase-c4fad"
+        ]
+      }
+    }
+  }
+}
