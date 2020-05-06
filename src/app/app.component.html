@@ -1,17 +1,20 @@
-<form [formGroup]="formulario" (ngSubmit)="adicionar()">
+<input type="file" (change)="uploadFile($event)">
+<div>{{ porcentagemEnvio | async }}</div>
+<a [href]="url | async">{{ url | async }}</a>
 
+<br>
+<br>
+<br>
+
+<form [formGroup]="formulario" (ngSubmit)="adicionar()">
   <input formControlName="descricao" name="Descricao">
   <button type="submit">adicionar produto</button>
-
 </form>
 
 <div *ngFor="let produto of produtos | async">
-
   <h3>{{produto.id}}</h3>
-
   <p>{{produto.descricao}}</p>
-
+  <input #inputEditar (keyup)="produto.descricao = inputEditar.value">
   <button (click)="editar(produto)">Editar</button>
-  <button (click)="excluir(produto)">Excluir</button>
-
+  <button (click)="deletar(produto)">Deletar</button>
 </div>

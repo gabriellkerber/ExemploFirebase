@@ -1,76 +1,77 @@
 import { Component, OnInit } from '@angular/core';
-import { AngularFirestore } from '@angular/fire/firestore';
 import { Produto } from './models/produto.model';
 import { FormGroup, FormControl } from '@angular/forms';
 import { Observable } from 'rxjs';
-import { ProdutosService as ProdutosService } from './services/produto.service';
+import { ProdutosService } from './services/produtos.service';
+import { AngularFireStorage } from '@angular/fire/storage';
+import { finalize } from 'rxjs/operators';
+
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
-export class AppComponent implements OnInit{
+export class AppComponent implements OnInit {
 
-  // produtos: Produto[] = [];
   produtos: Observable<Produto[]>;
-  title = 'ExemploFirebase';
 
-  constructor(public produtosService: ProdutosService,private firestore: AngularFirestore){ }
+  porcentagemEnvio: Observable<number>;
+  url: Observable<string>;
 
-
-formulario = new FormGroup({
+  formulario = new FormGroup({
     descricao: new FormControl(null),
   });
 
+  constructor(
+    public produtosService: ProdutosService,
+    private storage: AngularFireStorage
+  ) { }
 
-  ngOnInit(): void {
+  async ngOnInit(){
 
-    // this.produtos = this.firestore.collection<Produto>('produtos',
-    //  ref=> ref.orderBy('descricao')).valueChanges({idField: 'id'});
-     
+    this.produtos = this.produtosService.getObservable();
 
-    // this.atualizarLista();
+    // para modificar valores que vem do banco
+
+    // const p = await  this.produtosService.getAll();
+    // p[0].descricao = 'funcionou o get All';
+    // console.log(p);
   }
-    async adicionar(){
 
-      const novoProduto = this.formulario.value as Produto;
-      await this.produtosService.add(novoProduto);
-    }
+  async adicionar() {
 
-    async editar(produto: Produto){
+    const novoProduto = this.formulario.value as Produto;
 
-      produto.descricao ='Editado ' + new Date();
-      await this.firestore.collection('produtos').doc(produto.id).update(produto);
-      // this.atualizarLista();
-    }
+    await this.produtosService.add(novoProduto);
 
-    async excluir(produto: Produto){
+  }
 
-      await this.firestore.collection('produtos').doc(produto.id).delete();
-      // this.atualizarLista();
-    }
+  async deletar(produto: Produto) {
 
-    // atualizarLista(){
-    //   this.firestore.collection<Produto>('produtos',
+    await this.produtosService.delete(produto);
+  }
 
-    //   // aqui deixa em ordem alfabetica
-    //    ref => ref.orderBy('descricao')).get()
-    //   .toPromise()
-    //   .then(documentData => {
-  
-    //     // console.log(documentData.docs[0].data());
-  
-    //     this.produtos = documentData.docs.map(doc =>{ 
-    //       return {
-    //         id: doc.id, ...doc.data()
-    //       } as Produto;
-    //     });
-  
-    //     console.log(this.produtos);
-  
-    //   }).catch(error => {
-    //     console.log(error);
-    //   });
-    // }
+  async editar(produto: Produto) {
+    console.log(produto);
+    await this.produtosService.update(produto);
+  }
+
+  uploadFile(event) {
+    const file = event.target.files[0];
+
+    const nomeArquivo = 'arquivo teste';
+
+    const fileRef = this.storage.ref(nomeArquivo);
+    const task = this.storage.upload(nomeArquivo, file);
+
+    this.porcentagemEnvio = task.percentageChanges();
+
+    task.snapshotChanges().pipe(
+      finalize(() => this.url = fileRef.getDownloadURL())
+    ).subscribe();
+
+  }
+
 }
+
